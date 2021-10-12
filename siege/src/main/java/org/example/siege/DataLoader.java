@@ -22,7 +22,7 @@ public class DataLoader {
         this.eventOps = eventOps;
     }
 
-    @PostConstruct
+//    @PostConstruct
     public void loadData() {
         factory.getReactiveConnection().serverCommands().flushAll()
                 .thenMany(Flux.just(new Event(UUID.randomUUID().toString(), "Test event", "http://cdn.image.co.kr/7788"),

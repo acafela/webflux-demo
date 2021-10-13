@@ -1,5 +1,6 @@
 package org.example.siege;
 
+import lombok.RequiredArgsConstructor;
 import org.example.core.Event;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.ReactiveRedisOperations;
@@ -16,13 +17,10 @@ import static org.example.siege.RedisConstants.EVENT_PREFIX;
 import static org.springframework.web.reactive.function.BodyInserters.fromObject;
 
 @Component
+@RequiredArgsConstructor
 public class EventHandler {
 
     private final ReactiveRedisOperations<String, Event> eventOps;
-
-    public EventHandler(ReactiveRedisOperations<String, Event> eventOps) {
-        this.eventOps = eventOps;
-    }
 
     public Mono<ServerResponse> getAllEvents(ServerRequest request) {
         Flux<Event> allEventsFlux = eventOps.keys("event:*")
@@ -64,7 +62,7 @@ public class EventHandler {
                                 ServerResponse.BodyBuilder bodyBuilder = ServerResponse.ok()
                                         .contentType(MediaType.APPLICATION_JSON);
                                 if (!result) {
-                                    return bodyBuilder.body(fromObject(new ServiceError("REPO0001", "Failed to save data to redis.")));
+                                    return bodyBuilder.body(fromObject("Failed..."));
                                 }
                                 return bodyBuilder.body(fromObject(event));
                             });
@@ -78,25 +76,29 @@ public class EventHandler {
 
     public Mono<ServerResponse> updateEvent(ServerRequest request) {
         String id = EVENT_PREFIX + request.pathVariable("id");
-        return request.bodyToMono(Event.class)
-                .flatMap(newEvent ->
-                    eventOps.opsForValue().get(id)
-                            .flatMap(event -> {
-                                BeanUtils.copyProperties(newEvent, event);
-                                return eventOps.opsForValue().set(id, event).thenReturn(event);
-                            })
-                            .flatMap(event -> ServerResponse.ok()
-                                    .contentType(MediaType.APPLICATION_JSON)
-                                    .body(fromObject(event)))
-                            .switchIfEmpty(ServerResponse.notFound().build()));
-//        return eventOps.opsForValue().get(id)
-//                .flatMap(event -> {
-//                    BeanUtils.copyProperties(newEvent, event);
-//                    return eventOps.opsForValue().set(id, event).thenReturn(event);
-//                })
-//                .flatMap(event -> ServerResponse.ok()
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .body(fromObject(event)))
-//                .switchIfEmpty(ServerResponse.notFound().build());
+        Mono<Event> eventMono = request.bodyToMono(Event.class);
+        Mono<Event> updatedEventMono = eventMono.flatMap(newEvent ->
+                eventOps.opsForValue().get(id)
+                        .flatMap(event -> {
+                            BeanUtils.copyProperties(newEvent, event);
+                            return eventOps.opsForValue().set(id, event).thenReturn(event);
+                        }));
+        return updatedEventMono.flatMap(event -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(fromObject(event)))
+                .switchIfEmpty(ServerResponse.notFound().build());
+        // only method chain
+//        return request.bodyToMono(Event.class)
+//                .flatMap(newEvent ->
+//                    eventOps.opsForValue().get(id)
+//                            .flatMap(event -> {
+//                                BeanUtils.copyProperties(newEvent, event);
+//                                return eventOps.opsForValue().set(id, event).thenReturn(event);
+//                            })
+//                            .flatMap(event -> ServerResponse.ok()
+//                                    .contentType(MediaType.APPLICATION_JSON)
+//                                    .body(fromObject(event)))
+//                            .switchIfEmpty(ServerResponse.notFound().build()));
     }
+
 }

@@ -16,6 +16,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 
+import static org.example.siege.EndPoint.V1_ITEM_ROOT;
 import static org.springframework.web.reactive.function.BodyInserters.fromObject;
 
 @SpringBootTest
@@ -61,7 +62,7 @@ public class RouterTest {
     @Test
     public void updateEvent() {
         String id = "a691933b-daa8-488b-a775-f4c1f5c5c921";
-        String subject = "new event(update) 2";
+        String subject = "new event(update) 3";
         webTestClient.put().uri("/v1/events/" + id)
                 .body(fromObject(new Event(id, subject, null)))
                 .exchange()
@@ -71,5 +72,25 @@ public class RouterTest {
                 .jsonPath("$.imgUrl").doesNotExist();
     }
 
+    @Test
+    public void updateEventNotFound() {
+        String id = "blahblah";
+        String subject = "coca cola";
+        webTestClient.put().uri("/v1/events/" + id)
+                .body(fromObject(new Event(id, subject, null)))
+                .exchange()
+                .expectStatus().isNotFound();
+    }
+
+    @Test
+    public void getItem() {
+        String itemId = "1";
+        webTestClient.get().uri(V1_ITEM_ROOT + "/" +itemId)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.id").isEqualTo(itemId)
+                .jsonPath("$.name", "$.price", "$.reviewCount").isNotEmpty();
+    }
 
 }

@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Event {
+public class Event implements BusinessModel {
 
     private String id;
     private String subject;

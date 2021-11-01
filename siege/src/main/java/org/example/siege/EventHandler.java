@@ -1,6 +1,7 @@
 package org.example.siege;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.core.Event;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.ReactiveRedisOperations;
@@ -13,16 +14,19 @@ import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
+import static org.example.core.TestHelper.delay;
 import static org.example.siege.RedisConstants.EVENT_PREFIX;
 import static org.springframework.web.reactive.function.BodyInserters.fromObject;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class EventHandler {
 
     private final ReactiveRedisOperations<String, Event> eventOps;
 
     public Mono<ServerResponse> getAllEvents(ServerRequest request) {
+        delay();
         Flux<Event> allEventsFlux = eventOps.keys("event:*")
                 .flatMap(eventOps.opsForValue()::get);
         return ServerResponse.ok()

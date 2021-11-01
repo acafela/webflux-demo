@@ -7,10 +7,15 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Item implements BusinessModel {
+public class ItemRanking implements BusinessModel {
 
     private String id;
     private String name;
-    private double price;
-    private int reviewCount;
+    private int order;
+    private long count;
+
+    public ItemRanking(Item item) {
+        id = item.getId();
+        name = item.getName();
+    }
 }

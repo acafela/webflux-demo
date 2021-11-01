@@ -24,7 +24,7 @@ import static org.springframework.web.reactive.function.BodyInserters.fromObject
 @DirtiesContext
 @AutoConfigureWebTestClient
 @Slf4j
-public class RouterTest {
+public class EventRouterTest {
 
     @Autowired
     private WebTestClient webTestClient;
@@ -84,7 +84,7 @@ public class RouterTest {
 
     @Test
     public void getItem() {
-        String itemId = "1";
+        String itemId = "3";
         webTestClient.get().uri(V1_ITEM_ROOT + "/" +itemId)
                 .exchange()
                 .expectStatus().isOk()
